@@ -3,7 +3,7 @@
 import argparse
 import os
 
-script_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+script_path = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) # 当前目录
 
 sd_configs_path = os.path.join(script_path, "configs")
 sd_default_config = os.path.join(sd_configs_path, "v1-inference.yaml")

@@ -19,7 +19,7 @@ def wrap_queued_call(func):
     return f
 
 
-def wrap_gradio_gpu_call(func, extra_outputs=None):
+def wrap_gradio_gpu_call(func, extra_outputs=None): # 包裹函数
     def f(*args, **kwargs):
 
         # if the first argument is a string that says "task(...)", it is treated as a job id
@@ -42,11 +42,11 @@ def wrap_gradio_gpu_call(func, extra_outputs=None):
             shared.state.end()
 
         return res
-
+    # 这一层包裹做的是排队，既当有多个用户一起执行生成任务时，先来后到，先把任务入队，再根据获取锁的情况去放行。若排队等到可以执行任务，则进入第二层包裹函数
     return wrap_gradio_call(f, extra_outputs=extra_outputs, add_stats=True)
 
-
-def wrap_gradio_call(func, extra_outputs=None, add_stats=False):
+# 队列的实现有漏洞，实际并不能解决多人使用问题。这是因为传递给队列的inputs并不包含全部信息，例如就不包含模型名，一旦另外的两个用户切换模型，就会发生冲突
+def wrap_gradio_call(func, extra_outputs=None, add_stats=False): # 第二层包裹函数--主要是收集性能信息
     def f(*args, extra_outputs_array=extra_outputs, **kwargs):
         run_memmon = shared.opts.memmon_poll_rate > 0 and not shared.mem_mon.disabled and add_stats
         if run_memmon:

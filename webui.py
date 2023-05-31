@@ -299,7 +299,7 @@ def webui():
         modules.script_callbacks.before_ui_callback()
         startup_timer.record("scripts before_ui_callback")
 
-        shared.demo = modules.ui.create_ui()
+        shared.demo = modules.ui.create_ui() # UI模块
         startup_timer.record("create ui")
 
         if not cmd_opts.no_gradio_queue:
@@ -313,7 +313,7 @@ def webui():
                 for line in file.readlines():
                     gradio_auth_creds += [x.strip() for x in line.split(',') if x.strip()]
 
-        app, local_url, share_url = shared.demo.launch(
+        app, local_url, share_url = shared.demo.launch( # 启动整个服务
             share=cmd_opts.share,
             server_name=server_name,
             server_port=cmd_opts.port,

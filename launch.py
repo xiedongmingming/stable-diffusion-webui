@@ -63,7 +63,7 @@ def commit_hash():
         return stored_commit_hash
 
     try:
-        stored_commit_hash = run(f"{git} rev-parse HEAD").strip()
+        stored_commit_hash = run(f"{git} rev-parse HEAD").strip() # 'git rev-parse HEAD'
     except Exception:
         stored_commit_hash = "<none>"
 
@@ -235,7 +235,7 @@ def prepare_environment():
     k_diffusion_repo = os.environ.get('K_DIFFUSION_REPO', 'https://ghproxy.com/github.com/crowsonkb/k-diffusion.git')
     codeformer_repo = os.environ.get('CODEFORMER_REPO', 'https://ghproxy.com/github.com/sczhou/CodeFormer.git')
     blip_repo = os.environ.get('BLIP_REPO', 'https://ghproxy.com/github.com/salesforce/BLIP.git')
-
+    # 提交记录
     stable_diffusion_commit_hash = os.environ.get('STABLE_DIFFUSION_COMMIT_HASH', "cf1d67a6fd5ea1aa600c4df58e5b47da45f6bdbf")
     taming_transformers_commit_hash = os.environ.get('TAMING_TRANSFORMERS_COMMIT_HASH', "24268930bf1dce879235a7fddd0b2355b84d7ea6")
     k_diffusion_commit_hash = os.environ.get('K_DIFFUSION_COMMIT_HASH', "5b3af030dd83e0297272d861c19477735d0317ec")
@@ -294,7 +294,7 @@ def prepare_environment():
     if not os.path.isfile(requirements_file):
         requirements_file = os.path.join(script_path, requirements_file)
     run_pip(f"install -r \"{requirements_file}\"", "requirements")
-
+    # '"...python.exe" -m pip install -r "requirements_versions.txt" --prefer-binary'
     run_extensions_installers(settings_file=args.ui_settings_file)
 
     if args.update_check:

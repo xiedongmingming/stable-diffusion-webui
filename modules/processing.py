@@ -882,12 +882,12 @@ class StableDiffusionProcessingTxt2Img(StableDiffusionProcessing):
         latent_scale_mode = shared.latent_upscale_modes.get(self.hr_upscaler, None) if self.hr_upscaler is not None else shared.latent_upscale_modes.get(shared.latent_upscale_default_mode, "nearest")
         if self.enable_hr and latent_scale_mode is None:
             assert len([x for x in shared.sd_upscalers if x.name == self.hr_upscaler]) > 0, f"could not find upscaler named {self.hr_upscaler}"
-
+        # 生成一个随机噪声
         x = create_random_tensors([opt_C, self.height // opt_f, self.width // opt_f], seeds=seeds, subseeds=subseeds, subseed_strength=self.subseed_strength, seed_resize_from_h=self.seed_resize_from_h, seed_resize_from_w=self.seed_resize_from_w, p=self)
         samples = self.sampler.sample(self, x, conditioning, unconditional_conditioning, image_conditioning=self.txt2img_image_conditioning(x))
-
+        # 把噪声、条件等参数传递给采样器，从而得到一个采样器的方法（此时只是定义但尚未执行）
         if not self.enable_hr:
-            return samples
+            return samples # 如果没有选取“高清修复”，那么直接返回这个采样器。
 
         self.is_hr_pass = True
 

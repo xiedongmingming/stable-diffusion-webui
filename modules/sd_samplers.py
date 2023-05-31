@@ -22,7 +22,7 @@ def create_sampler(name, model):
 
     assert config is not None, f'bad sampler name: {name}'
 
-    sampler = config.constructor(model)
+    sampler = config.constructor(model) # 根据采样器的名字去读取配置，从而构建采样器
     sampler.config = config
 
     return sampler
