@@ -11,22 +11,30 @@ from modules import cmd_args
 from modules.paths_internal import script_path, extensions_dir
 
 commandline_args = os.environ.get('COMMANDLINE_ARGS', "")
+
 sys.argv += shlex.split(commandline_args)
 
 args, _ = cmd_args.parser.parse_known_args()
 
 python = sys.executable
+
 git = os.environ.get('GIT', "git")
+
 index_url = os.environ.get('INDEX_URL', "")
+
 stored_commit_hash = None
+
 dir_repos = "repositories"
 
 if 'GRADIO_ANALYTICS_ENABLED' not in os.environ:
+    #
     os.environ['GRADIO_ANALYTICS_ENABLED'] = 'False'
 
 
 def check_python_version():
+    #
     is_windows = platform.system() == "Windows"
+
     major = sys.version_info.major
     minor = sys.version_info.minor
     micro = sys.version_info.micro
@@ -37,6 +45,7 @@ def check_python_version():
         supported_minors = [7, 8, 9, 10, 11]
 
     if not (major == 3 and minor in supported_minors):
+        #
         import modules.errors
 
         modules.errors.print_error_explanation(f"""
