@@ -118,7 +118,7 @@ def reload_hypernetworks():
     hypernetworks = hypernetwork.list_hypernetworks(cmd_opts.hypernetwork_dir)
 
 
-class State:
+class State:  # 用于记录界面组件状态
     skipped = False
     interrupted = False
     job = ""
@@ -135,7 +135,7 @@ class State:
     textinfo = None
     time_start = None
     need_restart = False
-    server_start = None
+    server_start = None  # 服务启动时间
 
     def skip(self):
         self.skipped = True

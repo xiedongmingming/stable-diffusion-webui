@@ -298,41 +298,54 @@ def create_toprow(is_img2img):  # 公共页面代码
         #
         with gr.Column(elem_id=f"{id_part}_prompt_container", scale=6):
             #
-            with gr.Row():
-
+            with gr.Row():  # 正向提示词输入框
+                #
                 with gr.Column(scale=80):
-
+                    #
                     with gr.Row():
+                        #
+                        prompt = gr.Textbox(
+                            label="Prompt",
+                            elem_id=f"{id_part}_prompt",
+                            show_label=False,
+                            lines=3,
+                            placeholder="Prompt (press Ctrl+Enter or Alt+Enter to generate)"
+                        )
 
-                        prompt = gr.Textbox(label="Prompt", elem_id=f"{id_part}_prompt", show_label=False, lines=3,
-                                            placeholder="Prompt (press Ctrl+Enter or Alt+Enter to generate)")
-
-            with gr.Row():
-
+            with gr.Row():  # 反向提示词输入框
+                #
                 with gr.Column(scale=80):
-
+                    #
                     with gr.Row():
+                        #
+                        negative_prompt = gr.Textbox(
+                            label="Negative prompt",
+                            elem_id=f"{id_part}_neg_prompt",
+                            show_label=False,
+                            lines=3,
+                            placeholder="Negative prompt (press Ctrl+Enter or Alt+Enter to generate)"
+                        )
 
-                        negative_prompt = gr.Textbox(label="Negative prompt", elem_id=f"{id_part}_neg_prompt",
-                                                     show_label=False, lines=3,
-                                                     placeholder="Negative prompt (press Ctrl+Enter or Alt+Enter to generate)")
-
+        # 图生图才有的两个按钮
         button_interrogate = None
         button_deepbooru = None
 
         if is_img2img:
-
-            with gr.Column(scale=1, elem_classes="interrogate-col"):
-
+            #
+            with gr.Column(scale=1, elem_classes="interrogate-col"):  # 图生图两个按钮
+                #
                 button_interrogate = gr.Button('Interrogate\nCLIP', elem_id="interrogate")
                 button_deepbooru = gr.Button('Interrogate\nDeepBooru', elem_id="deepbooru")
 
         with gr.Column(scale=1, elem_id=f"{id_part}_actions_column"):
-
+            #
             with gr.Row(elem_id=f"{id_part}_generate_box", elem_classes="generate-box"):
-
-                interrupt = gr.Button('Interrupt', elem_id=f"{id_part}_interrupt",
-                                      elem_classes="generate-box-interrupt")
+                #
+                interrupt = gr.Button(
+                    'Interrupt',
+                    elem_id=f"{id_part}_interrupt",
+                    elem_classes="generate-box-interrupt"
+                )
 
                 skip = gr.Button('Skip', elem_id=f"{id_part}_skip", elem_classes="generate-box-skip")
 
@@ -350,21 +363,60 @@ def create_toprow(is_img2img):  # 公共页面代码
                     outputs=[],
                 )
 
-            with gr.Row(elem_id=f"{id_part}_tools"):
-                paste = ToolButton(value=paste_symbol, elem_id="paste")
-                clear_prompt_button = ToolButton(value=clear_prompt_symbol, elem_id=f"{id_part}_clear_prompt")
-                extra_networks_button = ToolButton(value=extra_networks_symbol, elem_id=f"{id_part}_extra_networks")
-                prompt_style_apply = ToolButton(value=apply_style_symbol, elem_id=f"{id_part}_style_apply")
-                save_style = ToolButton(value=save_style_symbol, elem_id=f"{id_part}_style_create")
-                restore_progress_button = ToolButton(value=restore_progress_symbol,
-                                                     elem_id=f"{id_part}_restore_progress", visible=False)
+            with gr.Row(elem_id=f"{id_part}_tools"):  # 工具按钮
+                #
+                paste = ToolButton(
+                    value=paste_symbol,
+                    elem_id="paste"
+                )
 
-                token_counter = gr.HTML(value="<span>0/75</span>", elem_id=f"{id_part}_token_counter",
-                                        elem_classes=["token-counter"])
-                token_button = gr.Button(visible=False, elem_id=f"{id_part}_token_button")
-                negative_token_counter = gr.HTML(value="<span>0/75</span>", elem_id=f"{id_part}_negative_token_counter",
-                                                 elem_classes=["token-counter"])
-                negative_token_button = gr.Button(visible=False, elem_id=f"{id_part}_negative_token_button")
+                clear_prompt_button = ToolButton(
+                    value=clear_prompt_symbol,
+                    elem_id=f"{id_part}_clear_prompt"
+                )
+
+                extra_networks_button = ToolButton(
+                    value=extra_networks_symbol,
+                    elem_id=f"{id_part}_extra_networks"
+                )
+
+                prompt_style_apply = ToolButton(
+                    value=apply_style_symbol,
+                    elem_id=f"{id_part}_style_apply"
+                )
+
+                save_style = ToolButton(
+                    value=save_style_symbol,
+                    elem_id=f"{id_part}_style_create"
+                )
+
+                restore_progress_button = ToolButton(
+                    value=restore_progress_symbol,
+                    elem_id=f"{id_part}_restore_progress",
+                    visible=False
+                )
+
+                token_counter = gr.HTML(
+                    value="<span>0/75</span>",
+                    elem_id=f"{id_part}_token_counter",
+                    elem_classes=["token-counter"]
+                )
+
+                token_button = gr.Button(
+                    visible=False,
+                    elem_id=f"{id_part}_token_button"
+                )
+
+                negative_token_counter = gr.HTML(
+                    value="<span>0/75</span>",
+                    elem_id=f"{id_part}_negative_token_counter",
+                    elem_classes=["token-counter"]
+                )
+
+                negative_token_button = gr.Button(
+                    visible=False,
+                    elem_id=f"{id_part}_negative_token_button"
+                )
 
                 clear_prompt_button.click(
                     fn=lambda *x: x,
@@ -373,13 +425,22 @@ def create_toprow(is_img2img):  # 公共页面代码
                     outputs=[prompt, negative_prompt],
                 )
 
-            with gr.Row(elem_id=f"{id_part}_styles_row"):
-                prompt_styles = gr.Dropdown(label="Styles", elem_id=f"{id_part}_styles",
-                                            choices=[k for k, v in shared.prompt_styles.styles.items()], value=[],
-                                            multiselect=True)
-                create_refresh_button(prompt_styles, shared.prompt_styles.reload,
-                                      lambda: {"choices": [k for k, v in shared.prompt_styles.styles.items()]},
-                                      f"refresh_{id_part}_styles")
+            with gr.Row(elem_id=f"{id_part}_styles_row"):  # 样式选择
+                #
+                prompt_styles = gr.Dropdown(
+                    label="Styles",
+                    elem_id=f"{id_part}_styles",
+                    choices=[k for k, v in shared.prompt_styles.styles.items()],
+                    value=[],
+                    multiselect=True
+                )
+
+                create_refresh_button(
+                    prompt_styles,
+                    shared.prompt_styles.reload,
+                    lambda: {"choices": [k for k, v in shared.prompt_styles.styles.items()]},
+                    f"refresh_{id_part}_styles"
+                )
 
     return prompt, prompt_styles, negative_prompt, submit, button_interrogate, button_deepbooru, prompt_style_apply, save_style, paste, extra_networks_button, token_counter, token_button, negative_token_counter, negative_token_button, restore_progress_button
 
@@ -512,7 +573,7 @@ def create_ui():
 
         dummy_component = gr.Label(visible=False)
 
-        txt_prompt_img = gr.File(
+        txt_prompt_img = gr.File( #
             label="",
             elem_id="txt2img_prompt_image",
             file_count="single",
@@ -873,8 +934,7 @@ def create_ui():
 
                         add_copy_image_controls('inpaint', init_img_with_mask)
 
-                    with gr.TabItem('Inpaint sketch', id='inpaint_sketch',
-                                    elem_id="img2img_inpaint_sketch_tab") as tab_inpaint_color:
+                    with gr.TabItem('Inpaint sketch', id='inpaint_sketch', elem_id="img2img_inpaint_sketch_tab") as tab_inpaint_color:
 
                         inpaint_color_sketch = gr.Image(
                             label="Color sketch inpainting",
