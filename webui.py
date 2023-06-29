@@ -299,6 +299,7 @@ def initialize():
 def setup_middleware(app):
     #
     app.middleware_stack = None  # reset current middleware to allow modifying user provided list
+
     app.add_middleware(GZipMiddleware, minimum_size=1000)
 
     if cmd_opts.cors_allow_origins and cmd_opts.cors_allow_origins_regex:

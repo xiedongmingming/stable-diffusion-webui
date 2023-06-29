@@ -446,21 +446,27 @@ def create_toprow(is_img2img):  # 公共页面代码
 
 
 def setup_progressbar(*args, **kwargs):
+    #
     pass
 
 
 def apply_setting(key, value):
+    #
     if value is None:
+        #
         return gr.update()
 
     if shared.cmd_opts.freeze_settings:
+        #
         return gr.update()
 
     # dont allow model to be swapped when model hash exists in prompt
     if key == "sd_model_checkpoint" and opts.disable_weights_auto_swap:
+        #
         return gr.update()
 
     if key == "sd_model_checkpoint":
+        #
         ckpt_info = sd_models.get_closet_checkpoint_match(value)
 
         if ckpt_info is not None:
@@ -469,80 +475,137 @@ def apply_setting(key, value):
             return gr.update()
 
     comp_args = opts.data_labels[key].component_args
+
     if comp_args and isinstance(comp_args, dict) and comp_args.get('visible') is False:
+        #
         return
 
     valtype = type(opts.data_labels[key].default)
+
     oldval = opts.data.get(key, None)
+
     opts.data[key] = valtype(value) if valtype != type(None) else value
+
     if oldval != value and opts.data_labels[key].onchange is not None:
+        #
         opts.data_labels[key].onchange()
 
     opts.save(shared.config_filename)
+
     return getattr(opts, key)
 
 
 def create_refresh_button(refresh_component, refresh_method, refreshed_args, elem_id):
+    #
     def refresh():
+        #
         refresh_method()
+
         args = refreshed_args() if callable(refreshed_args) else refreshed_args
 
         for k, v in args.items():
+            #
             setattr(refresh_component, k, v)
 
         return gr.update(**(args or {}))
 
     refresh_button = ToolButton(value=refresh_symbol, elem_id=elem_id)
+
     refresh_button.click(
         fn=refresh,
         inputs=[],
         outputs=[refresh_component]
     )
+
     return refresh_button
 
 
 def create_output_panel(tabname, outdir):
+    #
     return ui_common.create_output_panel(tabname, outdir)
 
 
 def create_sampler_and_steps_selection(choices, tabname):
+    #
     if opts.samplers_in_dropdown:
+        #
         with FormRow(elem_id=f"sampler_selection_{tabname}"):
-            sampler_index = gr.Dropdown(label='Sampling method', elem_id=f"{tabname}_sampling",
-                                        choices=[x.name for x in choices], value=choices[0].name, type="index")
-            steps = gr.Slider(minimum=1, maximum=150, step=1, elem_id=f"{tabname}_steps", label="Sampling steps",
-                              value=20)
+
+            sampler_index = gr.Dropdown(
+                label='Sampling method',
+                elem_id=f"{tabname}_sampling",
+                choices=[x.name for x in choices],
+                value=choices[0].name,
+                type="index"
+            )
+
+            steps = gr.Slider(
+                minimum=1,
+                maximum=150,
+                step=1,
+                elem_id=f"{tabname}_steps",
+                label="Sampling steps",
+                value=20
+            )
+
     else:
+
         with FormGroup(elem_id=f"sampler_selection_{tabname}"):
-            steps = gr.Slider(minimum=1, maximum=150, step=1, elem_id=f"{tabname}_steps", label="Sampling steps",
-                              value=20)
-            sampler_index = gr.Radio(label='Sampling method', elem_id=f"{tabname}_sampling",
-                                     choices=[x.name for x in choices], value=choices[0].name, type="index")
+
+            steps = gr.Slider(
+                minimum=1,
+                maximum=150,
+                step=1,
+                elem_id=f"{tabname}_steps",
+                label="Sampling steps",
+                value=20
+            )
+
+            sampler_index = gr.Radio(
+                label='Sampling method',
+                elem_id=f"{tabname}_sampling",
+                choices=[x.name for x in choices],
+                value=choices[0].name,
+                type="index"
+            )
 
     return steps, sampler_index
 
 
 def ordered_ui_categories():
+    #
     user_order = {x.strip(): i * 2 + 1 for i, x in enumerate(shared.opts.ui_reorder.split(","))}
 
-    for i, category in sorted(enumerate(shared.ui_reorder_categories),
-                              key=lambda x: user_order.get(x[1], x[0] * 2 + 0)):
+    for i, category in sorted(
+            enumerate(shared.ui_reorder_categories),
+            key=lambda x: user_order.get(x[1], x[0] * 2 + 0)
+    ):
+        #
         yield category
 
 
 def get_value_for_setting(key):
+    #
     value = getattr(opts, key)
 
     info = opts.data_labels[key]
+
     args = info.component_args() if callable(info.component_args) else info.component_args or {}
+
     args = {k: v for k, v in args.items() if k not in {'precision'}}
 
     return gr.update(value=value, **args)
 
 
 def create_override_settings_dropdown(tabname, row):
-    dropdown = gr.Dropdown([], label="Override settings", visible=False, elem_id=f"{tabname}_override_settings",
-                           multiselect=True)
+    #
+    dropdown = gr.Dropdown(
+        [],
+        label="Override settings",
+        visible=False,
+        elem_id=f"{tabname}_override_settings",
+        multiselect=True
+    )
 
     dropdown.change(
         fn=lambda x: gr.Dropdown.update(visible=len(x) > 0),
