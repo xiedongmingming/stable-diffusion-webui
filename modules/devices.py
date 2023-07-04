@@ -1,11 +1,14 @@
 import sys
 import contextlib
+
 from functools import lru_cache
 
 import torch
+
 from modules import errors
 
 if sys.platform == "darwin":
+    #
     from modules import mac_specific
 
 
@@ -14,6 +17,7 @@ def has_mps() -> bool:
         return False
     else:
         return mac_specific.has_mps
+
 
 def extract_device_id(args, name):
     for x in range(len(args)):
@@ -74,14 +78,17 @@ def enable_tf32():
         torch.backends.cudnn.allow_tf32 = True
 
 
-
 errors.run(enable_tf32, "Enabling TF32")
 
 cpu = torch.device("cpu")
+
 device = device_interrogate = device_gfpgan = device_esrgan = device_codeformer = None
+
 dtype = torch.float16
+
 dtype_vae = torch.float16
 dtype_unet = torch.float16
+
 unet_needs_upcast = False
 
 
@@ -123,7 +130,8 @@ def autocast(disable=False):
 
 
 def without_autocast(disable=False):
-    return torch.autocast("cuda", enabled=False) if torch.is_autocast_enabled() and not disable else contextlib.nullcontext()
+    return torch.autocast("cuda",
+                          enabled=False) if torch.is_autocast_enabled() and not disable else contextlib.nullcontext()
 
 
 class NansException(Exception):

@@ -4,11 +4,14 @@ import torch.nn.functional as F
 
 from modules import devices
 
+
 # see https://github.com/AUTOMATIC1111/TorchDeepDanbooru for more
 
 
 class DeepDanbooruModel(nn.Module):
+
     def __init__(self):
+        #
         super(DeepDanbooruModel, self).__init__()
 
         self.tags = []
@@ -195,7 +198,9 @@ class DeepDanbooruModel(nn.Module):
         self.n_Conv_178 = nn.Conv2d(kernel_size=(1, 1), in_channels=4096, out_channels=9176, bias=False)
 
     def forward(self, *inputs):
+        #
         t_358, = inputs
+
         t_359 = t_358.permute(*[0, 3, 1, 2])
         t_359_padded = F.pad(t_359, [2, 3, 2, 3], value=0)
         t_360 = self.n_Conv_0(t_359_padded.to(self.n_Conv_0.bias.dtype) if devices.unet_needs_upcast else t_359_padded)
@@ -672,7 +677,7 @@ class DeepDanbooruModel(nn.Module):
         return t_771
 
     def load_state_dict(self, state_dict, **kwargs):
+        #
         self.tags = state_dict.get('tags', [])
 
         super(DeepDanbooruModel, self).load_state_dict({k: v for k, v in state_dict.items() if k != 'tags'})
-

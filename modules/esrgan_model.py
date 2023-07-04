@@ -11,24 +11,32 @@ from modules.upscaler import Upscaler, UpscalerData
 from modules.shared import opts
 
 
-
 def mod2normal(state_dict):
+    #
     # this code is copied from https://github.com/victorca25/iNNfer
+    #
     if 'conv_first.weight' in state_dict:
+
         crt_net = {}
+
         items = list(state_dict)
 
         crt_net['model.0.weight'] = state_dict['conv_first.weight']
         crt_net['model.0.bias'] = state_dict['conv_first.bias']
 
         for k in items.copy():
+
             if 'RDB' in k:
+
                 ori_k = k.replace('RRDB_trunk.', 'model.1.sub.')
+
                 if '.weight' in k:
                     ori_k = ori_k.replace('.weight', '.0.weight')
                 elif '.bias' in k:
                     ori_k = ori_k.replace('.bias', '.0.bias')
+
                 crt_net[ori_k] = state_dict[k]
+
                 items.remove(k)
 
         crt_net['model.1.sub.23.weight'] = state_dict['trunk_conv.weight']
@@ -41,7 +49,9 @@ def mod2normal(state_dict):
         crt_net['model.8.bias'] = state_dict['HRconv.bias']
         crt_net['model.10.weight'] = state_dict['conv_last.weight']
         crt_net['model.10.bias'] = state_dict['conv_last.bias']
+
         state_dict = crt_net
+
     return state_dict
 
 
@@ -79,10 +89,10 @@ def resrgan2normal(state_dict, nb=23):
             crt_net['model.9.weight'] = state_dict['conv_up3.weight']
             crt_net['model.9.bias'] = state_dict['conv_up3.bias']
 
-        crt_net[f'model.{8+re8x}.weight'] = state_dict['conv_hr.weight']
-        crt_net[f'model.{8+re8x}.bias'] = state_dict['conv_hr.bias']
-        crt_net[f'model.{10+re8x}.weight'] = state_dict['conv_last.weight']
-        crt_net[f'model.{10+re8x}.bias'] = state_dict['conv_last.bias']
+        crt_net[f'model.{8 + re8x}.weight'] = state_dict['conv_hr.weight']
+        crt_net[f'model.{8 + re8x}.bias'] = state_dict['conv_hr.bias']
+        crt_net[f'model.{10 + re8x}.weight'] = state_dict['conv_last.weight']
+        crt_net[f'model.{10 + re8x}.bias'] = state_dict['conv_last.bias']
 
         state_dict = crt_net
     return state_dict
@@ -103,8 +113,8 @@ def infer_params(state_dict):
         elif n_parts == 3:
             part_num = int(parts[1])
             if (part_num > scalemin
-                and parts[0] == "model"
-                and parts[2] == "weight"):
+                    and parts[0] == "model"
+                    and parts[2] == "weight"):
                 scale2x += 1
             if part_num > n_uplayer:
                 n_uplayer = part_num
@@ -171,7 +181,8 @@ class UpscalerESRGAN(Upscaler):
         elif "params" in state_dict:
             state_dict = state_dict["params"]
             num_conv = 16 if "realesr-animevideov3" in filename else 32
-            model = arch.SRVGGNetCompact(num_in_ch=3, num_out_ch=3, num_feat=64, num_conv=num_conv, upscale=4, act_type='prelu')
+            model = arch.SRVGGNetCompact(num_in_ch=3, num_out_ch=3, num_feat=64, num_conv=num_conv, upscale=4,
+                                         act_type='prelu')
             model.load_state_dict(state_dict)
             model.eval()
             return model
@@ -227,6 +238,7 @@ def esrgan_upscale(model, img):
             newrow.append([x * scale_factor, w * scale_factor, output])
         newtiles.append([y * scale_factor, h * scale_factor, newrow])
 
-    newgrid = images.Grid(newtiles, grid.tile_w * scale_factor, grid.tile_h * scale_factor, grid.image_w * scale_factor, grid.image_h * scale_factor, grid.overlap * scale_factor)
+    newgrid = images.Grid(newtiles, grid.tile_w * scale_factor, grid.tile_h * scale_factor, grid.image_w * scale_factor,
+                          grid.image_h * scale_factor, grid.overlap * scale_factor)
     output = images.combine_grid(newgrid)
     return output

@@ -14,58 +14,81 @@ import git
 from modules import shared, extensions, errors
 from modules.paths_internal import script_path, config_states_dir
 
-
 all_config_states = OrderedDict()
 
 
 def list_config_states():
+    #
     global all_config_states
 
     all_config_states.clear()
+
     os.makedirs(config_states_dir, exist_ok=True)
 
     config_states = []
+
     for filename in os.listdir(config_states_dir):
+
         if filename.endswith(".json"):
+            #
             path = os.path.join(config_states_dir, filename)
+
             with open(path, "r", encoding="utf-8") as f:
+                #
                 j = json.load(f)
+
                 j["filepath"] = path
+
                 config_states.append(j)
 
     config_states = sorted(config_states, key=lambda cs: cs["created_at"], reverse=True)
 
     for cs in config_states:
+        #
         timestamp = time.asctime(time.gmtime(cs["created_at"]))
+
         name = cs.get("name", "Config")
+
         full_name = f"{name}: {timestamp}"
+
         all_config_states[full_name] = cs
 
     return all_config_states
 
 
 def get_webui_config():
+    #
     webui_repo = None
 
     try:
+
         if os.path.exists(os.path.join(script_path, ".git")):
+            #
             webui_repo = git.Repo(script_path)
+
     except Exception:
+
         errors.report(f"Error reading webui git info from {script_path}", exc_info=True)
 
     webui_remote = None
     webui_commit_hash = None
     webui_commit_date = None
     webui_branch = None
+
     if webui_repo and not webui_repo.bare:
+
         try:
+
             webui_remote = next(webui_repo.remote().urls, None)
+
             head = webui_repo.head.commit
+
             webui_commit_date = webui_repo.head.commit.committed_date
             webui_commit_hash = head.hexsha
             webui_branch = webui_repo.active_branch.name
 
         except Exception:
+
             webui_remote = None
 
     return {
@@ -164,7 +187,8 @@ def restore_extension_config(config):
         if ext.name not in ext_config:
             ext.disabled = True
             disabled.append(ext.name)
-            results.append((ext, current_commit[:8], False, "Saved extension state not found in config, marking as disabled"))
+            results.append(
+                (ext, current_commit[:8], False, "Saved extension state not found in config, marking as disabled"))
             continue
 
         entry = ext_config[ext.name]
