@@ -8,6 +8,7 @@ import sys
 import importlib.util
 import platform
 import json
+
 from functools import lru_cache
 
 from modules import cmd_args, errors
@@ -16,22 +17,29 @@ from modules.timer import startup_timer
 from modules import logging_config
 
 args, _ = cmd_args.parser.parse_known_args()
+
 logging_config.setup_logging(args.loglevel)
 
 python = sys.executable
+
 git = os.environ.get('GIT', "git")
+
 index_url = os.environ.get('INDEX_URL', "")
+
 dir_repos = "repositories"
 
 # Whether to default to printing command output
 default_command_live = (os.environ.get('WEBUI_LAUNCH_LIVE_OUTPUT') == "1")
 
 if 'GRADIO_ANALYTICS_ENABLED' not in os.environ:
+    #
     os.environ['GRADIO_ANALYTICS_ENABLED'] = 'False'
 
 
 def check_python_version():
+    #
     is_windows = platform.system() == "Windows"
+
     major = sys.version_info.major
     minor = sys.version_info.minor
     micro = sys.version_info.micro
@@ -42,6 +50,7 @@ def check_python_version():
         supported_minors = [7, 8, 9, 10, 11]
 
     if not (major == 3 and minor in supported_minors):
+        #
         import modules.errors
 
         modules.errors.print_error_explanation(f"""
@@ -135,7 +144,8 @@ def run_pip(command, desc=None, live=default_command_live):
         return
 
     index_url_line = f' --index-url {index_url}' if index_url != '' else ''
-    return run(f'"{python}" -m pip {command} --prefer-binary{index_url_line}', desc=f"Installing {desc}", errdesc=f"Couldn't install {desc}", live=live)
+    return run(f'"{python}" -m pip {command} --prefer-binary{index_url_line}', desc=f"Installing {desc}",
+               errdesc=f"Couldn't install {desc}", live=live)
 
 
 def check_run_python(code: str) -> bool:
@@ -144,12 +154,14 @@ def check_run_python(code: str) -> bool:
 
 
 def git_fix_workspace(dir, name):
-    run(f'"{git}" -C "{dir}" fetch --refetch --no-auto-gc', f"Fetching all contents for {name}", f"Couldn't fetch {name}", live=True)
+    run(f'"{git}" -C "{dir}" fetch --refetch --no-auto-gc', f"Fetching all contents for {name}",
+        f"Couldn't fetch {name}", live=True)
     run(f'"{git}" -C "{dir}" gc --aggressive --prune=now', f"Pruning {name}", f"Couldn't prune {name}", live=True)
     return
 
 
-def run_git(dir, name, command, desc=None, errdesc=None, custom_env=None, live: bool = default_command_live, autofix=True):
+def run_git(dir, name, command, desc=None, errdesc=None, custom_env=None, live: bool = default_command_live,
+            autofix=True):
     try:
         return run(f'"{git}" -C "{dir}" {command}', desc=desc, errdesc=errdesc, custom_env=custom_env, live=live)
     except RuntimeError:
@@ -169,16 +181,19 @@ def git_clone(url, dir, name, commithash=None):
         if commithash is None:
             return
 
-        current_hash = run_git(dir, name, 'rev-parse HEAD', None, f"Couldn't determine {name}'s hash: {commithash}", live=False).strip()
+        current_hash = run_git(dir, name, 'rev-parse HEAD', None, f"Couldn't determine {name}'s hash: {commithash}",
+                               live=False).strip()
         if current_hash == commithash:
             return
 
-        if run_git(dir, name, 'config --get remote.origin.url', None, f"Couldn't determine {name}'s origin URL", live=False).strip() != url:
+        if run_git(dir, name, 'config --get remote.origin.url', None, f"Couldn't determine {name}'s origin URL",
+                   live=False).strip() != url:
             run_git(dir, name, f'remote set-url origin "{url}"', None, f"Failed to set {name}'s origin URL", live=False)
 
         run_git(dir, name, 'fetch', f"Fetching updates for {name}...", f"Couldn't fetch {name}", autofix=False)
 
-        run_git(dir, name, f'checkout {commithash}', f"Checking out commit for {name} with hash: {commithash}...", f"Couldn't checkout commit {commithash} for {name}", live=True)
+        run_git(dir, name, f'checkout {commithash}', f"Checking out commit for {name} with hash: {commithash}...",
+                f"Couldn't checkout commit {commithash} for {name}", live=True)
 
         return
 
@@ -205,7 +220,8 @@ def git_pull_recursive(dir):
 def version_check(commit):
     try:
         import requests
-        commits = requests.get('https://api.github.com/repos/AUTOMATIC1111/stable-diffusion-webui/branches/master').json()
+        commits = requests.get(
+            'https://api.github.com/repos/AUTOMATIC1111/stable-diffusion-webui/branches/master').json()
         if commit != "<none>" and commits['commit']['sha'] != commit:
             print("--------------------------------------------------------")
             print("| You are not up to date with the most recent release. |")
@@ -228,7 +244,8 @@ def run_extension_installer(extension_dir):
         env = os.environ.copy()
         env['PYTHONPATH'] = f"{os.path.abspath('.')}{os.pathsep}{env.get('PYTHONPATH', '')}"
 
-        stdout = run(f'"{python}" "{path_installer}"', errdesc=f"Error running install.py for extension {extension_dir}", custom_env=env).strip()
+        stdout = run(f'"{python}" "{path_installer}"',
+                     errdesc=f"Error running install.py for extension {extension_dir}", custom_env=env).strip()
         if stdout:
             print(stdout)
     except Exception as e:
@@ -248,7 +265,8 @@ def list_extensions(settings_file):
     disabled_extensions = set(settings.get('disabled_extensions', []))
     disable_all_extensions = settings.get('disable_all_extensions', 'none')
 
-    if disable_all_extensions != 'none' or args.disable_extra_extensions or args.disable_all_extensions or not os.path.isdir(extensions_dir):
+    if disable_all_extensions != 'none' or args.disable_extra_extensions or args.disable_all_extensions or not os.path.isdir(
+            extensions_dir):
         return []
 
     return [x for x in os.listdir(extensions_dir) if x not in disabled_extensions]
@@ -309,21 +327,28 @@ def requirements_met(requirements_file):
 
 def prepare_environment():
     torch_index_url = os.environ.get('TORCH_INDEX_URL', "https://download.pytorch.org/whl/cu118")
-    torch_command = os.environ.get('TORCH_COMMAND', f"pip install torch==2.0.1 torchvision==0.15.2 --extra-index-url {torch_index_url}")
+    torch_command = os.environ.get('TORCH_COMMAND',
+                                   f"pip install torch==2.0.1 torchvision==0.15.2 --extra-index-url {torch_index_url}")
     requirements_file = os.environ.get('REQS_FILE', "requirements_versions.txt")
 
     xformers_package = os.environ.get('XFORMERS_PACKAGE', 'xformers==0.0.20')
-    clip_package = os.environ.get('CLIP_PACKAGE', "https://github.com/openai/CLIP/archive/d50d76daa670286dd6cacf3bcd80b5e4823fc8e1.zip")
-    openclip_package = os.environ.get('OPENCLIP_PACKAGE', "https://github.com/mlfoundations/open_clip/archive/bb6e834e9c70d9c27d0dc3ecedeebeaeb1ffad6b.zip")
+    clip_package = os.environ.get('CLIP_PACKAGE',
+                                  "https://ghproxy.com/github.com/openai/CLIP/archive/d50d76daa670286dd6cacf3bcd80b5e4823fc8e1.zip")
+    openclip_package = os.environ.get('OPENCLIP_PACKAGE',
+                                      "https://ghproxy.com/github.com/mlfoundations/open_clip/archive/bb6e834e9c70d9c27d0dc3ecedeebeaeb1ffad6b.zip")
 
-    stable_diffusion_repo = os.environ.get('STABLE_DIFFUSION_REPO', "https://github.com/Stability-AI/stablediffusion.git")
-    stable_diffusion_xl_repo = os.environ.get('STABLE_DIFFUSION_XL_REPO', "https://github.com/Stability-AI/generative-models.git")
-    k_diffusion_repo = os.environ.get('K_DIFFUSION_REPO', 'https://github.com/crowsonkb/k-diffusion.git')
-    codeformer_repo = os.environ.get('CODEFORMER_REPO', 'https://github.com/sczhou/CodeFormer.git')
-    blip_repo = os.environ.get('BLIP_REPO', 'https://github.com/salesforce/BLIP.git')
+    stable_diffusion_repo = os.environ.get('STABLE_DIFFUSION_REPO',
+                                           "https://ghproxy.com/github.com/Stability-AI/stablediffusion.git")
+    stable_diffusion_xl_repo = os.environ.get('STABLE_DIFFUSION_XL_REPO',
+                                              "https://ghproxy.com/github.com/Stability-AI/generative-models.git")
+    k_diffusion_repo = os.environ.get('K_DIFFUSION_REPO', 'https://ghproxy.com/github.com/crowsonkb/k-diffusion.git')
+    codeformer_repo = os.environ.get('CODEFORMER_REPO', 'https://ghproxy.com/github.com/sczhou/CodeFormer.git')
+    blip_repo = os.environ.get('BLIP_REPO', 'https://ghproxy.com/github.com/salesforce/BLIP.git')
 
-    stable_diffusion_commit_hash = os.environ.get('STABLE_DIFFUSION_COMMIT_HASH', "cf1d67a6fd5ea1aa600c4df58e5b47da45f6bdbf")
-    stable_diffusion_xl_commit_hash = os.environ.get('STABLE_DIFFUSION_XL_COMMIT_HASH', "45c443b316737a4ab6e40413d7794a7f5657c19f")
+    stable_diffusion_commit_hash = os.environ.get('STABLE_DIFFUSION_COMMIT_HASH',
+                                                  "cf1d67a6fd5ea1aa600c4df58e5b47da45f6bdbf")
+    stable_diffusion_xl_commit_hash = os.environ.get('STABLE_DIFFUSION_XL_COMMIT_HASH',
+                                                     "45c443b316737a4ab6e40413d7794a7f5657c19f")
     k_diffusion_commit_hash = os.environ.get('K_DIFFUSION_COMMIT_HASH', "ab527a9a6d347f364e3d185ba6d714e22d80cb3c")
     codeformer_commit_hash = os.environ.get('CODEFORMER_COMMIT_HASH', "c5b4593074ba6214284d6acd5f1719b6c5d739af")
     blip_commit_hash = os.environ.get('BLIP_COMMIT_HASH', "48211a1594f1321b00f14c9f7a5b4813144b2fb9")
@@ -377,8 +402,10 @@ def prepare_environment():
 
     os.makedirs(os.path.join(script_path, dir_repos), exist_ok=True)
 
-    git_clone(stable_diffusion_repo, repo_dir('stable-diffusion-stability-ai'), "Stable Diffusion", stable_diffusion_commit_hash)
-    git_clone(stable_diffusion_xl_repo, repo_dir('generative-models'), "Stable Diffusion XL", stable_diffusion_xl_commit_hash)
+    git_clone(stable_diffusion_repo, repo_dir('stable-diffusion-stability-ai'), "Stable Diffusion",
+              stable_diffusion_commit_hash)
+    git_clone(stable_diffusion_xl_repo, repo_dir('generative-models'), "Stable Diffusion XL",
+              stable_diffusion_xl_commit_hash)
     git_clone(k_diffusion_repo, repo_dir('k-diffusion'), "K-diffusion", k_diffusion_commit_hash)
     git_clone(codeformer_repo, repo_dir('CodeFormer'), "CodeFormer", codeformer_commit_hash)
     git_clone(blip_repo, repo_dir('BLIP'), "BLIP", blip_commit_hash)
@@ -386,7 +413,8 @@ def prepare_environment():
     startup_timer.record("clone repositores")
 
     if not is_installed("lpips"):
-        run_pip(f"install -r \"{os.path.join(repo_dir('CodeFormer'), 'requirements.txt')}\"", "requirements for CodeFormer")
+        run_pip(f"install -r \"{os.path.join(repo_dir('CodeFormer'), 'requirements.txt')}\"",
+                "requirements for CodeFormer")
         startup_timer.record("install CodeFormer requirements")
 
     if not os.path.isfile(requirements_file):
@@ -410,7 +438,6 @@ def prepare_environment():
     if "--exit" in sys.argv:
         print("Exiting because of --exit argument")
         exit(0)
-
 
 
 def configure_for_tests():
